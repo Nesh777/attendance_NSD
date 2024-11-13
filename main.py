@@ -7,12 +7,11 @@ import tkinter as tk
 
 
 
-# Database setup function
+
 def setup_database():
     conn = sqlite3.connect('NSD_attendance_system.db')
     c = conn.cursor()
 
-    # Create tables if they don't exist
     c.execute('''CREATE TABLE IF NOT EXISTS users (
                     username TEXT PRIMARY KEY,
                     password TEXT,
@@ -31,19 +30,16 @@ def setup_database():
                     status TEXT,
                     FOREIGN KEY(student_id) REFERENCES students(id),
                     FOREIGN KEY(course_code) REFERENCES courses(course_code))''')
-    
-    # Insert default instructor user (username: instructor, password: instruct123)
+    #instructors password = "instruct123"
     instructor_password = hashlib.sha256("instruct123".encode()).hexdigest()
     c.execute("INSERT OR IGNORE INTO users (username, password, role) VALUES (?, ?, ?)", ("instructor", instructor_password, "instructor"))
     
     conn.commit()
     conn.close()
 
-# Helper function for hashing passwords
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Function to verify login credentials
 def verify_login(username, password):
     conn = sqlite3.connect('NSD_attendance_system.db')
     c = conn.cursor()
@@ -53,15 +49,14 @@ def verify_login(username, password):
     conn.close()
     return user[0] if user else None
 
-# Add a new student with a password as their first name + "123"
+
 def add_student(name, username):
     conn = sqlite3.connect('NSD_attendance_system.db')
     c = conn.cursor()
     
-    # Set the password to be the student's name + "123"
+    #password = name + "123"
     password = hash_password(name + "123")
-    
-    # Insert student record in the students table and user login in users table
+
     c.execute("INSERT INTO students (name, username) VALUES (?, ?)", (name, username))
     c.execute("INSERT INTO users (username, password, role) VALUES (?, ?, ?)", (username, password, "student"))
     
@@ -69,7 +64,6 @@ def add_student(name, username):
     conn.close()
     messagebox.showinfo("Success", f"Student '{name}' added with username '{username}' and password '{name}123'")
 
-# Add a new course
 def add_course(course_code, course_name):
     conn = sqlite3.connect('NSD_attendance_system.db')
     c = conn.cursor()
@@ -77,12 +71,10 @@ def add_course(course_code, course_name):
     conn.commit()
     conn.close()
 
-# Mark attendance using student's name instead of ID
 def mark_attendance(student_name, course_code, status):
     conn = sqlite3.connect('NSD_attendance_system.db')
     c = conn.cursor()
-    
-    # Get student ID based on the name
+ 
     c.execute("SELECT id FROM students WHERE name = ?", (student_name,))
     student = c.fetchone()
 
@@ -92,15 +84,13 @@ def mark_attendance(student_name, course_code, status):
     
     student_id = student[0]
     date = datetime.now().strftime("%Y-%m-%d")
-    
-    # Insert attendance record using student ID
+
     c.execute("INSERT INTO attendance (student_id, course_code, date, status) VALUES (?, ?, ?, ?)", 
               (student_id, course_code, date, status))
     conn.commit()
     conn.close()
     messagebox.showinfo("Success", f"Attendance for student '{student_name}' marked as '{status}' for course '{course_code}' on '{date}'")
 
-# View attendance for a student by their name
 def view_student_attendance(username):
     conn = sqlite3.connect('NSD_attendance_system.db')
     c = conn.cursor()
@@ -129,7 +119,6 @@ def view_student_attendance(username):
     else:
         messagebox.showinfo("Attendance", "No attendance records found.")
 
-# Instructor Menu GUI
 def instructor_menu(root):
     def add_student_gui():
         def submit_student():
@@ -205,7 +194,6 @@ def instructor_menu(root):
     def logout():
         root.quit()
 
-    # Main instructor menu
     instructor_frame = Frame(root)
     instructor_frame.pack(pady=20)
 
@@ -214,7 +202,6 @@ def instructor_menu(root):
     Button(instructor_frame, text="Mark Attendance",bg='lightgreen', command=mark_attendance_gui).pack(pady=5)
     Button(instructor_frame, text="Logout",bg='lightgreen', command=logout).pack(pady=5)
 
-# Student Menu GUI
 def student_menu(username, root):
     def view_attendance_gui():
         view_student_attendance(username)
@@ -222,14 +209,12 @@ def student_menu(username, root):
     def logout():
         root.quit()
 
-    # Main student menu
     student_frame = Frame(root)
     student_frame.pack(pady=20)
 
     Button(student_frame, text="View Attendance",bg='blue', command=view_attendance_gui).pack(pady=10)
     Button(student_frame, text="Logout",bg='blue', command=logout).pack(pady=10)
 
-# Main login GUI
 def login_gui():
     def login():
         username = username_entry.get()
